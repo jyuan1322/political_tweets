@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <script src="{{ url_for('static',filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/d3.layout.cloud.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/d3.wordcloud.js') }}"></script>
+  </head>
+  <body>
+      Please select a politician:
+      <form id="myform" action = "{{url_for('get_word_cloud')}}" method = "POST">
+        <select name = "ID" onchange="change()">
+            <option selected disabled hidden style='display: none' value=''></option>
+            <option value="ID1">Hillary Clinton</option>
+            <option value="ID2">Donald Trump</option>
+            <option value="ID3">Gary Johnson</option>
+        </select> 
+     </form>
+    <div id='wordcloud'></div>
+  </body>
+
+  <script>
+    d3.wordcloud()
+      .size([800, 400])
+      .selector('#wordcloud')
+      .words([{text: 'word', size: 5}, {text: 'cloud', size: 15}])
+      .start();
+  </script>
+  <script>
+  function change(){
+      document.getElementById("myform").submit();
+  }
+  </script>
+</html>
