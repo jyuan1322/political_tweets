@@ -1,9 +1,11 @@
-import json
+try:
+    import json
 except ImportError:
     import simplejson as json
 
 # Import the necessary methods from "twitter" library
 from twitter import Twitter, OAuth, TwitterHTTPError, TwitterStream
+from collections import Counter
 
 # Variables that contains the user credentials to access Twitter API 
 ACCESS_TOKEN = '3524569402-hWdaeA0moXHixJqWezA9fiajLPgxDY2zQfLHyOD'
@@ -15,7 +17,9 @@ oauth = OAuth(ACCESS_TOKEN, ACCESS_SECRET, CONSUMER_KEY, CONSUMER_SECRET)
 
 twitter = Twitter(auth=oauth)
 
-tweet = twitter.statuses.user_timeline(screen_name="hillaryclinton", count = 1)
+lookup_handle = "hillaryclinton"
+
+h_tweet = twitter.statuses.user_timeline(screen_name=lookup_handle, count = 5)
 
 
 
@@ -32,5 +36,40 @@ class twitter_word:
     word = ""
     frequency = 0
     tweet_id = ""
+
+tweet_list = []
+twitter_word_list = []
+
+
+#firstTweet = h_tweet[0]
+#tweetText = firstTweet["text"]
+#splitText = tweetText.split()
+#for oneWord in splitText:
+#    print(oneWord)
+#    if "http" in oneWord:
+#         print("a link.")
+
+for oneTweet in h_tweet:
+    tweet_obj = tweet()
+    tweet_obj.tweet_id = oneTweet["id_str"]
+    tweet_obj.created_at = oneTweet["created_at"]
+    tweet_obj.retweet_count = oneTweet["retweet_count"]
+    tweet_obj.reply_count = 0 #can't look that up! wtf?
+    tweet_obj.handle = lookup_handle
+#    print(oneTweet["text"])
+    tweet_text = oneTweet["text"]
+    wordFreq = Counter()
+    for oneWord in tweet_text.split():
+        if "http" not in oneWord:
+            wordFreq[oneWord] += 1
+    for eachWord in wordFreq:
+        tweetWord = twitter_word()
+        tweetWord.word = eachWord
+        tweetWord.frequency = wordFreq[eachWord]
+        tweetWord.handle = tweet_obj.tweet_id
+
+#print ("length is: " + len(tweet))
+
+#print json.dumps(h_tweet)
 
 
