@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Twitter User Word Cloud</title>
+        <script src="{{ url_for('static',filename='js/d3.js') }}"></script>
+        <script src="{{ url_for('static',filename='js/d3.layout.cloud.js') }}"></script>
+        <script src="{{ url_for('static',filename='js/d3.wordcloud.js') }}"></script>
+    </head>
+    <body>
+        Please select a politician:
+        <form id="myform" action = "{{url_for('get_word_cloud')}}" method = "POST">
+            <select name = "twitter_handle" onchange="change()">
+                <option selected disabled hidden style='display: none' value=''></option>
+                <option value="@HillaryClinton">Hillary Clinton</option>
+                <option value="@realDonaldTrump">Donald Trump</option>
+                <option value="@GovGaryJohnson">Gary Johnson</option>
+            </select> 
+        </form>
+        <h4>Showing Twitter word usage for: {{twitter_user}}</h4>
+        <div id='wordcloud'></div>
+    </body>
+
+    <script>
+        {% if words is not none %}
+        d3.wordcloud()
+        .size([800, 400])
+        .selector('#wordcloud')
+        {# .words([{text: 'word', size: 5}, {text: 'cloud', size: 15}]) #}
+        .words({{words|safe}})
+        .start();
+        {% endif %}
+    </script>
+    <script>
+    function change(){
+        document.getElementById("myform").submit();
+    }
+    </script>
+</html>

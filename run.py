@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-
+import json
 from flask import Flask,render_template,request
 from sqlalchemy import *
+from pprint import pprint
 
 app = Flask(__name__)
 
@@ -42,14 +43,19 @@ def get_word_cloud():
                     FROM tweet T, twitter_word TW
                     WHERE T.tweet_id = TW.tweet_id) B
             ON A.handle = B.handle
-            WHERE A.handle = '@HillaryClinton'
+            WHERE A.handle = '%s'
             GROUP BY A.handle,B.word;
-        """
+        """ % (request.form["twitter_handle"])
         res = engine.execute(sql)
-        for row in res:
-            print row
-        return render_template('index.html',title='home')
+        res = [dict(x) for x in res]
+        words = []
+        for r in res:
+            words.append({'text':str(r['word']),'size':int(r['count'])})
+        return render_template('user_word_cloud.html',
+                                twitter_user=request.form["twitter_handle"],
+                                words=words)
     else:
-        return render_template('index.html',title='home')
+        return render_template('user_word_cloud.html',twitter_user='',words=None)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000)
