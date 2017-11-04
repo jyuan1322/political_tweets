@@ -28,6 +28,20 @@ def psql_test():
 def hello_world():
     return 'Hello World!'
 
+@app.route('/network')
+def network():
+    graph = {
+                "nodes": [
+                    {"id":"Hillary", "group":1},
+                    {"id":"Trump", "group":2},
+                    {"id":"Ford", "group":2}
+                    ],
+                "links": [
+                    {"source":"Hillary", "target":"Trump", "value":1},
+                    {"source":"Hillary", "target":"Ford", "value":10}
+                    ]}
+    graph = json.dumps(graph)
+    return render_template('network.html',graph=graph)
 
 @app.route('/twitter_word_cloud', methods=['GET','POST'])
 def get_word_cloud():
