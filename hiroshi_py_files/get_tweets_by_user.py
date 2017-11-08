@@ -53,6 +53,7 @@ for oneTweet in h_tweet:
     tweet_obj = tweet()
     tweet_obj.tweet_id = oneTweet["id_str"]
     tweet_obj.created_at = oneTweet["created_at"]
+    print (tweet_obj.created_at)
     tweet_obj.retweet_count = oneTweet["retweet_count"]
     tweet_obj.reply_count = 0 #can't look that up! wtf?
     tweet_obj.handle = lookup_handle
