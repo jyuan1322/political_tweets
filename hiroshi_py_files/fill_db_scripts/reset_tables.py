@@ -107,6 +107,7 @@ def reset_tables():
      FOREIGN KEY (wiki_page_name) REFERENCES WIKIPEDIA_PAGE\
          ON DELETE CASCADE);")
 
+    conn.close()
 
 if __name__ == "__main__":
     reset_tables()

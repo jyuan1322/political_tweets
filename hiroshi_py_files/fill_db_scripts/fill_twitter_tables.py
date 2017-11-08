@@ -35,6 +35,10 @@ def populate_tweet_tables (lookup_handle, num_tweets = 5):
 
     twitter = Twitter(auth=oauth)
 
+
+    lookup_handle=lookup_handle.lower()
+
+
     twitter_user = twitter.users.show(screen_name=lookup_handle)
 
     conn.execute("INSERT INTO twitter_user (handle,created_at,follower_count,location,url,profile_image) VALUES \
@@ -57,7 +61,7 @@ def populate_tweet_tables (lookup_handle, num_tweets = 5):
             + "," + str(reply_count) + ",'" + handle + "');")
 
 #        tweet_text = oneTweet["text"]
-        tweet_text = ''.join(c for c in oneTweet["text"] if c not in '\'\";():')
+        tweet_text = ''.join(c for c in oneTweet["text"] if c not in '\'\";():%')
         wordFreq = Counter()
         hashtags = Counter()
         for oneWord in tweet_text.split():
@@ -81,6 +85,8 @@ def populate_tweet_tables (lookup_handle, num_tweets = 5):
 
             conn.execute("INSERT INTO hashtag_member (name,tweet_id) VALUES\
                 ('" + hashtag + "','" + tweet_id + "');")
+
+    conn.close()
 
 if __name__ == "__main__":
     handles = ["HillaryClinton", "realDonaldTrump", "GovGaryJohnson"]
