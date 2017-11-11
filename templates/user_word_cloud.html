@@ -5,34 +5,67 @@
         <script src="{{ url_for('static',filename='js/d3.js') }}"></script>
         <script src="{{ url_for('static',filename='js/d3.layout.cloud.js') }}"></script>
         <script src="{{ url_for('static',filename='js/d3.wordcloud.js') }}"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     </head>
     <body>
-        Please select a politician:
-        <form id="myform" action = "{{url_for('get_word_cloud')}}" method = "POST">
-            <select name = "twitter_handle" onchange="change()">
-                <option selected disabled hidden style='display: none' value=''></option>
-                <option value="@HillaryClinton">Hillary Clinton</option>
-                <option value="@realDonaldTrump">Donald Trump</option>
-                <option value="@GovGaryJohnson">Gary Johnson</option>
-            </select> 
-        </form>
-        <h4>Showing Twitter word usage for: {{twitter_user}}</h4>
-        <div id='wordcloud'></div>
+        <table>
+            <tr>
+                <td>
+                    Please select a politician:
+                    <form id="myform" action = "{{url_for('get_word_cloud')}}" method = "POST">
+                        <select name="twitter_handle" onchange="change()">
+                            <option selected disabled hidden style='display: none' value=''></option>
+                            <option value="@HillaryClinton">Hillary Clinton</option>
+                            <option value="@realDonaldTrump">Donald Trump</option>
+                            <option value="@GovGaryJohnson">Gary Johnson</option>
+                        </select> 
+                    </form>
+                    <h4>Showing Twitter word usage for: {{twitter_user}}</h4>
+                    <div id='wordcloud'></div>
+                    <h4>Sentiment Score: {{sentiment}}</h4>
+                </td>
+                <td>
+                    <!-- A second column for comparison of two users? -->
+                </td>
+            </tr>
+        </table>
+        <div id="result"></div>
     </body>
 
     <script>
+        function draw_word_cloud(wc_words) {
+            {% if words is not none %}
+            d3.select("#wordcloud").selectAll("svg").remove();
+            d3.wordcloud()
+            .size([400, 400])
+            .selector('#wordcloud')
+            {# .words([{text: 'word', size: 5}, {text: 'cloud', size: 15}]) #}
+            .words(wc_words)
+            .start();
+            {% endif %}
+        }
         {% if words is not none %}
-        d3.wordcloud()
-        .size([800, 400])
-        .selector('#wordcloud')
-        {# .words([{text: 'word', size: 5}, {text: 'cloud', size: 15}]) #}
-        .words({{words|safe}})
-        .start();
+        draw_word_cloud({{words|safe}})
         {% endif %}
     </script>
     <script>
-    function change(){
-        document.getElementById("myform").submit();
-    }
+        function change(){
+            document.getElementById("myform").submit();
+        }
+    </script>
+    <script>
+        setInterval(
+            function()
+            {
+                $.ajax({
+                    url:"{{ url_for("get_values", _external=True) }}",
+                    type: 'POST',
+                    data: "{{ twitter_user }}",
+                    success: function(response) {
+                        $("#result").text(response.result);
+                        draw_word_cloud(response.new_wc_words);
+                    }
+                });
+            }, 3000);
     </script>
 </html>
