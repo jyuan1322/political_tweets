@@ -102,7 +102,7 @@ def populate_tweet_tables (lookup_handle, num_tweets = 5):
 
 
 
-        tweet_text = ''.join(c for c in oneTweet["text"] if c not in '\'\";():%')
+        tweet_text = ''.join(c for c in oneTweet["text"] if c not in '\'\";():%,.')
         wordFreq = Counter()
         hashtags = Counter()
         for oneWord in tweet_text.split():

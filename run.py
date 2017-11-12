@@ -29,8 +29,66 @@ def psql_test():
 def hello_world():
     return 'Hello World!'
 
+@app.route('/sentiment_time')
+def sentiment_time():
+    line = [
+                [100000,2],
+                [300000,4]
+
+            ]
+    return render_template('sentiment_time.html', line=line,twitter_start=0,twitter_end=500000,twitter_minscore=-1,twitter_maxscore=10)
+
 @app.route('/network')
 def network():
+    sql = """
+        SELECT AA.handle as u1,BB.handle as u2,AA.word,AA.wc as c1,BB.wc as c2
+        FROM
+            (SELECT A.handle,B.word,COUNT(B.word) as wc
+            FROM
+                    (SELECT TU.handle, WW.political_party
+                    FROM twitter_user TU, wikipedia_page WW
+                    WHERE TU.handle = WW.handle) A
+            JOIN
+                    (SELECT DISTINCT T.handle,T.tweet_id,TW.word
+                    FROM tweet T, twitter_word TW
+                    WHERE T.tweet_id = TW.tweet_id) B
+            ON A.handle = B.handle
+            GROUP BY A.handle,B.word
+            HAVING COUNT(B.word) > 1) AA
+        JOIN
+            (SELECT A.handle,B.word,COUNT(B.word) as wc
+            FROM
+                    (SELECT TU.handle, WW.political_party
+                    FROM twitter_user TU, wikipedia_page WW
+                    WHERE TU.handle = WW.handle) A
+            JOIN
+                    (SELECT DISTINCT T.handle,T.tweet_id,TW.word
+                    FROM tweet T, twitter_word TW
+                    WHERE T.tweet_id = TW.tweet_id) B
+            ON A.handle = B.handle
+            GROUP BY A.handle,B.word
+            HAVING COUNT(B.word) > 1) BB
+        ON AA.word = BB.word
+        WHERE AA.handle != BB.handle AND AA.handle < BB.handle;
+    """
+    res = engine.execute(sql)
+    res = [dict(x) for x in res]
+    pprint(res)
+    
+    nodes = []
+    links = []
+    for r in res:
+        u1 = r["u1"]
+        u2 = r["u2"]
+        node_ids = [x["id"] for x in nodes]
+        if u1 not in node_ids:
+            nodes.append({"id":u1, "group":1})
+        if u2 not in node_ids:
+            nodes.append({"id":u2, "group":1})
+        links.append({"source":u1,"target":u2,"value":min(r["c1"],r["c2"])})
+    graph = {"nodes":nodes,"links":links}
+    pprint(graph)
+    """
     graph = {
                 "nodes": [
                     {"id":"Hillary", "group":1},
@@ -41,6 +99,7 @@ def network():
                     {"source":"Hillary", "target":"Trump", "value":1},
                     {"source":"Hillary", "target":"Ford", "value":10}
                     ]}
+    """
     graph = json.dumps(graph)
     return render_template('network.html',graph=graph)
 
