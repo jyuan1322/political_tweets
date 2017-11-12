@@ -13,7 +13,12 @@
 }
 
 </style>
-<svg width="960" height="600"></svg>
+<h3>Vocabulary similarity between politicians</h3>
+<a href="{{url_for('hello_world',_external=True)}}">Back to Menu</a>
+<svg width="400" height="400"></svg>
+<p>In the event that the visualization is slow to load, the raw data is displayed here:</p>
+<p>{{graph|safe}}</p>
+
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <!--<script src="{{ url_for('static',filename='js/d3.js') }}"></script>-->
 <script>
