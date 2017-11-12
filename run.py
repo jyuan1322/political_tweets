@@ -31,12 +31,43 @@ def hello_world():
 
 @app.route('/sentiment_time')
 def sentiment_time():
-    line = [
-                [100000,2],
-                [300000,4]
+    sql = """
+        SELECT DISTINCT T.handle,T.tweet_id,TW.word,T.created_at
+        FROM tweet T, twitter_word TW
+        WHERE T.tweet_id = TW.tweet_id
+    """
+    res = engine.execute(sql)
+    res = [dict(x) for x in res]
 
-            ]
-    return render_template('sentiment_time.html', line=line,twitter_start=0,twitter_end=500000,twitter_minscore=-1,twitter_maxscore=10)
+    handles = {}
+    twitter_start = float('inf')
+    twitter_end = float('-inf')
+    for r in res:
+        handle = r['handle']
+        if handle not in handles:
+            handles[handle] = {}
+        epoch = datetime.date(1970,1,1)
+        tdate = (r['created_at']-epoch).total_seconds() * 1000
+        if tdate < twitter_start:
+            twitter_start = tdate
+        if tdate > twitter_end:
+            twitter_end = tdate
+        if tdate not in handles[handle]:
+            handles[handle][tdate] = ""
+        handles[handle][tdate] += " " + r['word']
+    pprint(handles)
+    
+    analyzer = SentimentIntensityAnalyzer()
+    lines = []
+    for h in handles:
+        line = []
+        for d in handles[h]:
+            line.append([d,analyzer.polarity_scores(handles[h][d])["compound"]])
+        line.sort(key=lambda x:x[0])
+        lines.append({"name":h,"line":line})
+    pprint(lines)
+
+    return render_template('sentiment_time.html', lines=lines,twitter_start=twitter_start,twitter_end=twitter_end,twitter_minscore=-1,twitter_maxscore=1)
 
 @app.route('/network')
 def network():
