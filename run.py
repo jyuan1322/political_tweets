@@ -287,6 +287,7 @@ def wiki_word_cloud_sql(wiki_name):
         FROM
                 wiki_word_aggregate A
         WHERE A.wiki_page_name = '%s'
+        LIMIT 200
     """ % (wiki_name)
     res = engine.execute(sql)
     res = [dict(x) for x in res]
