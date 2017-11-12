@@ -9,25 +9,10 @@ app = Flask(__name__)
 
 DATABASEURI = "postgresql://jy2732:1833@35.196.90.148/proj1part2"
 engine = create_engine(DATABASEURI)
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-          id serial,
-            name text
-            );""")
-
-@app.route('/psqltest')
-def psql_test():
-    sql = """
-        select * from tweet;
-    """
-    res = engine.execute(sql)
-    for row in res:
-        print row
-    return 'finished query'
-    
 
 @app.route('/')
 def hello_world():
-    return 'Hello World!'
+    return render_template("main_menu.html")
 
 @app.route('/sentiment_time')
 def sentiment_time():
@@ -136,6 +121,13 @@ def network():
 
 @app.route('/twitter_word_cloud', methods=['GET','POST'])
 def get_word_cloud():
+    sql = """
+        SELECT handle,name
+        FROM wikipedia_page
+    """
+    options = engine.execute(sql)
+    options = [dict(x) for x in options]
+
     if request.method == 'POST':
         res,words = word_cloud_sql(request.form["twitter_handle"])
 
@@ -152,9 +144,10 @@ def get_word_cloud():
         return render_template('user_word_cloud.html',
                                 twitter_user=request.form["twitter_handle"],
                                 sentiment=sentiment,
+                                options=options,
                                 words=words)
     else:
-        return render_template('user_word_cloud.html',twitter_user='',words=None)
+        return render_template('user_word_cloud.html',twitter_user='',options=options,words=None)
 
 def word_cloud_sql(twitter_handle):
     sql = """
@@ -175,7 +168,7 @@ def word_cloud_sql(twitter_handle):
     res = [dict(x) for x in res]
     words = []
     for r in res:
-        words.append({'text':str(r['word']),'size':int(r['count'])})
+        words.append({'text':str(r['word'].encode('utf-8')),'size':int(r['count'])})
     return res,words
 
 import datetime
@@ -183,7 +176,7 @@ import datetime
 def get_values():
     twitter_handle = request.get_data()
     print "twitter_handle:", twitter_handle
-    result = "this is a test" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    result = "Last updated: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     res, new_wc_words = word_cloud_sql(twitter_handle)
     return jsonify(result=result,new_wc_words=new_wc_words)
 

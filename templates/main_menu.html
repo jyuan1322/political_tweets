@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Political Vocabulary Analyzer</title>
+        <script src="{{ url_for('static',filename='js/d3.js') }}"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    </head>
+    <body>
+    <h2>Political Vocabulary Analyzer</h2>
+    <h3>Jie Yuan (jy2732) and Hiroshi Furuya (hf2326)</h3>
+    <p>
+        <a href="{{url_for('get_word_cloud',_external=True)}}">Lexicon of Twitter and Wikipedia Pages</a>
+    </p>
+    <p>
+    <a href="{{url_for('network',_external=True)}}">Similarity Matrix by Lexicon</a>
+    </p>
+    <p>
+        <a href="{{url_for('sentiment_time',_external=True)}}">Sentiment Analysis Over Time</a>
+    </p>
+    </body>
+
+</html>
