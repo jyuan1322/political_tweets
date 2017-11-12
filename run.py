@@ -57,9 +57,10 @@ def sentiment_time():
 @app.route('/network')
 def network():
     sql = """
-        SELECT AA.handle as u1,BB.handle as u2,AA.word,AA.wc as c1,BB.wc as c2
+        SELECT AA.handle as u1,BB.handle as u2,AA.word,AA.wc as c1,BB.wc as c2,
+                AA.political_party as p1, BB.political_party as p2
         FROM
-            (SELECT A.handle,B.word,COUNT(B.word) as wc
+            (SELECT A.handle,A.political_party,B.word,COUNT(B.word) as wc
             FROM
                     (SELECT TU.handle, WW.political_party
                     FROM twitter_user TU, wikipedia_page WW
@@ -69,10 +70,10 @@ def network():
                     FROM tweet T, twitter_word TW
                     WHERE T.tweet_id = TW.tweet_id) B
             ON A.handle = B.handle
-            GROUP BY A.handle,B.word
+            GROUP BY A.handle,A.political_party,B.word
             HAVING COUNT(B.word) > 1) AA
         JOIN
-            (SELECT A.handle,B.word,COUNT(B.word) as wc
+            (SELECT A.handle,A.political_party,B.word,COUNT(B.word) as wc
             FROM
                     (SELECT TU.handle, WW.political_party
                     FROM twitter_user TU, wikipedia_page WW
@@ -82,7 +83,7 @@ def network():
                     FROM tweet T, twitter_word TW
                     WHERE T.tweet_id = TW.tweet_id) B
             ON A.handle = B.handle
-            GROUP BY A.handle,B.word
+            GROUP BY A.handle,A.political_party,B.word
             HAVING COUNT(B.word) > 1) BB
         ON AA.word = BB.word
         WHERE AA.handle != BB.handle AND AA.handle < BB.handle;
@@ -93,14 +94,22 @@ def network():
     
     nodes = []
     links = []
+    pol_parties = {}
+    inc = 0
     for r in res:
         u1 = r["u1"]
         u2 = r["u2"]
         node_ids = [x["id"] for x in nodes]
         if u1 not in node_ids:
-            nodes.append({"id":u1, "group":1})
+            if r["p1"] not in pol_parties:
+                pol_parties[r["p1"]] = inc
+                inc += 1
+            nodes.append({"id":u1, "group":pol_parties[r["p1"]]})
         if u2 not in node_ids:
-            nodes.append({"id":u2, "group":1})
+            if r["p2"] not in pol_parties:
+                pol_parties[r["p2"]] = inc
+                inc += 1
+            nodes.append({"id":u2, "group":pol_parties[r["p2"]]})
         links.append({"source":u1,"target":u2,"value":min(r["c1"],r["c2"])})
     graph = {"nodes":nodes,"links":links}
     pprint(graph)
