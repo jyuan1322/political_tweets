@@ -11,21 +11,16 @@
         <table>
             <tr>
                 <td>
-                    Please select a politician:
-                    <form id="myform" action = "{{url_for('get_word_cloud')}}" method = "POST">
-                        <select name="twitter_handle" onchange="change()">
+                    Please select a political party:
+                    <form id="myform" action = "{{url_for('get_party_word_cloud')}}" method = "POST">
+                        <select name="pol_party" onchange="change()">
                             <option selected disabled hidden style='display: none' value=''></option>
                             {% for op in options %}
-                            <option value="{{op.handle}}">{{op.name}}</option>
+                            <option value="{{op.name}}">{{op.name}}</option>
                             {% endfor %}
-                            <!--
-                            <option value="@HillaryClinton">Hillary Clinton</option>
-                            <option value="@realDonaldTrump">Donald Trump</option>
-                            <option value="@GovGaryJohnson">Gary Johnson</option>
-                            -->
                         </select> 
                     </form>
-                    <h4>Showing Twitter word usage for: {{twitter_user}}</h4>
+                    <h4>Showing Twitter word usage for: {{pol_party}}</h4>
                     <div id='wordcloud'></div>
                     <h4>Sentiment Score: {{sentiment}}</h4>
                 </td>
@@ -63,9 +58,9 @@
             function()
             {
                 $.ajax({
-                    url:"{{ url_for("get_values", _external=True) }}",
+                    url:"{{ url_for("get_party_values", _external=True) }}",
                     type: 'POST',
-                    data: "{{ twitter_user }}",
+                    data: "{{ pol_party }}",
                     success: function(response) {
                         $("#result").text(response.result);
                         draw_word_cloud(response.new_wc_words);

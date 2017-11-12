@@ -11,21 +11,16 @@
         <table>
             <tr>
                 <td>
-                    Please select a politician:
-                    <form id="myform" action = "{{url_for('get_word_cloud')}}" method = "POST">
-                        <select name="twitter_handle" onchange="change()">
+                    Please select a politician's Wikipedia page:
+                    <form id="myform" action = "{{url_for('get_wiki_word_cloud')}}" method = "POST">
+                        <select name="wiki_name" onchange="change()">
                             <option selected disabled hidden style='display: none' value=''></option>
                             {% for op in options %}
-                            <option value="{{op.handle}}">{{op.name}}</option>
+                            <option value="{{op.wiki_name}}">{{op.wiki_name}}</option>
                             {% endfor %}
-                            <!--
-                            <option value="@HillaryClinton">Hillary Clinton</option>
-                            <option value="@realDonaldTrump">Donald Trump</option>
-                            <option value="@GovGaryJohnson">Gary Johnson</option>
-                            -->
                         </select> 
                     </form>
-                    <h4>Showing Twitter word usage for: {{twitter_user}}</h4>
+                    <h4>Showing Twitter word usage for: {{wiki_name}}</h4>
                     <div id='wordcloud'></div>
                     <h4>Sentiment Score: {{sentiment}}</h4>
                 </td>
@@ -57,20 +52,5 @@
         function change(){
             document.getElementById("myform").submit();
         }
-    </script>
-    <script>
-        setInterval(
-            function()
-            {
-                $.ajax({
-                    url:"{{ url_for("get_values", _external=True) }}",
-                    type: 'POST',
-                    data: "{{ twitter_user }}",
-                    success: function(response) {
-                        $("#result").text(response.result);
-                        draw_word_cloud(response.new_wc_words);
-                    }
-                });
-            }, 3000);
     </script>
 </html>

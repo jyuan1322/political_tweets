@@ -159,6 +159,6 @@ def populate_tweet_tables (lookup_handle, num_tweets = 5):
     conn.close()
 
 if __name__ == "__main__":
-    handles = ["HillaryClinton", "realDonaldTrump", "GovGaryJohnson"]
+    handles = ["HillaryClinton", "realDonaldTrump", "GovGaryJohnson","donnabrazile"]
     for handle in handles:
         populate_tweet_tables(handle, 10)

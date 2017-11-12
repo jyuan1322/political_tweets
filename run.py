@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import json
+import json, datetime
 from flask import Flask,render_template,request,jsonify
 from sqlalchemy import *
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -171,13 +171,179 @@ def word_cloud_sql(twitter_handle):
         words.append({'text':str(r['word'].encode('utf-8')),'size':int(r['count'])})
     return res,words
 
-import datetime
 @app.route('/get_values', methods=['GET','POST'])
 def get_values():
     twitter_handle = request.get_data()
     print "twitter_handle:", twitter_handle
     result = "Last updated: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     res, new_wc_words = word_cloud_sql(twitter_handle)
+    return jsonify(result=result,new_wc_words=new_wc_words)
+
+# -------------------------------------------------------------------
+
+@app.route('/twitter_party_word_cloud', methods=['GET','POST'])
+def get_party_word_cloud():
+    sql = """
+        SELECT name
+        FROM political_party
+    """
+    options = engine.execute(sql)
+    options = [dict(x) for x in options]
+
+    if request.method == 'POST':
+        res,words = party_word_cloud_sql(request.form["pol_party"])
+
+        res_str = []
+        for r in res:
+            for i in range(int(r['count'])):
+                res_str.append(r['word'])
+        res_str = " ".join(res_str)
+        analyzer = SentimentIntensityAnalyzer()
+        sentiment = analyzer.polarity_scores(res_str)["compound"]
+
+        print "selected:", request.form["pol_party"]
+
+        return render_template('party_word_cloud.html',
+                                pol_party=request.form["pol_party"],
+                                sentiment=sentiment,
+                                options=options,
+                                words=words)
+    else:
+        return render_template('party_word_cloud.html',pol_party='',options=options,words=None)
+
+def party_word_cloud_sql(pol_party):
+    sql = """
+        SELECT A.political_party,B.word,COUNT(B.word)
+        FROM
+                (SELECT WW.handle,WW.political_party
+                FROM wikipedia_page WW) A
+        JOIN
+                (SELECT DISTINCT T.handle,T.tweet_id,TW.word
+                FROM tweet T, twitter_word TW
+                WHERE T.tweet_id = TW.tweet_id) B
+        ON A.handle = B.handle
+        WHERE A.political_party = '%s'
+        GROUP BY A.political_party,B.word;
+    """ % (pol_party)
+    res = engine.execute(sql)
+    res = [dict(x) for x in res]
+    words = []
+    for r in res:
+        words.append({'text':str(r['word'].encode('utf-8')),'size':int(r['count'])})
+    return res,words
+
+@app.route('/get_party_values', methods=['GET','POST'])
+def get_party_values():
+    pol_party = request.get_data()
+    print "pol_party:", pol_party
+    result = "Last updated: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    res, new_wc_words = party_word_cloud_sql(pol_party)
+    return jsonify(result=result,new_wc_words=new_wc_words)
+
+# -------------------------------------------------------------------
+
+@app.route('/wiki_word_cloud', methods=['GET','POST'])
+def get_wiki_word_cloud():
+    sql = """
+        SELECT wiki_page_name as wiki_name
+        FROM wikipedia_page
+    """
+    options = engine.execute(sql)
+    options = [dict(x) for x in options]
+
+    if request.method == 'POST':
+        res,words = wiki_word_cloud_sql(request.form["wiki_name"])
+
+        res_str = []
+        for r in res:
+            for i in range(int(r['count'])):
+                res_str.append(r['word'])
+        res_str = " ".join(res_str)
+        analyzer = SentimentIntensityAnalyzer()
+        sentiment = analyzer.polarity_scores(res_str)["compound"]
+
+        print "selected:", request.form["wiki_name"]
+
+        return render_template('wiki_word_cloud.html',
+                                wiki_name=request.form["wiki_name"],
+                                sentiment=sentiment,
+                                options=options,
+                                words=words)
+    else:
+        return render_template('wiki_word_cloud.html',wiki_party='',options=options,words=None)
+
+def wiki_word_cloud_sql(wiki_name):
+    sql = """
+        SELECT A.wiki_page_name,A.word,A.frequency as count
+        FROM
+                wiki_word_aggregate A
+        WHERE A.wiki_page_name = '%s'
+    """ % (wiki_name)
+    res = engine.execute(sql)
+    res = [dict(x) for x in res]
+    words = []
+    for r in res:
+        words.append({'text':str(r['word'].encode('utf-8')),'size':int(r['count'])})
+    return res,words
+
+# -------------------------------------------------------------------
+
+@app.route('/hashtag_word_cloud', methods=['GET','POST'])
+def get_hashtag_word_cloud():
+    sql = """
+        SELECT name
+        FROM hashtag
+    """
+    options = engine.execute(sql)
+    options = [dict(x) for x in options]
+
+    if request.method == 'POST':
+        res,words = hashtag_word_cloud_sql(request.form["hashtag"])
+
+        res_str = []
+        for r in res:
+            for i in range(int(r['count'])):
+                res_str.append(r['word'])
+        res_str = " ".join(res_str)
+        analyzer = SentimentIntensityAnalyzer()
+        sentiment = analyzer.polarity_scores(res_str)["compound"]
+
+        print "selected:", request.form["hashtag"]
+
+        return render_template('hashtag_word_cloud.html',
+                                hashtag=request.form["hashtag"],
+                                sentiment=sentiment,
+                                options=options,
+                                words=words)
+    else:
+        return render_template('hashtag_word_cloud.html',hashtag='',options=options,words=None)
+
+def hashtag_word_cloud_sql(hashtag):
+    sql = """
+        SELECT A.name,B.word,COUNT(B.word)
+        FROM
+                (SELECT HM.name, HM.tweet_id
+                FROM hashtag_member HM) A
+        JOIN
+                (SELECT TW.word,TW.tweet_id
+                FROM twitter_word TW) B
+        ON A.tweet_id = B.tweet_id
+        WHERE A.name = '%s'
+        GROUP BY A.name,B.word;
+    """ % (hashtag)
+    res = engine.execute(sql)
+    res = [dict(x) for x in res]
+    words = []
+    for r in res:
+        words.append({'text':str(r['word'].encode('utf-8')),'size':int(r['count'])})
+    return res,words
+
+@app.route('/get_hashtag_values', methods=['GET','POST'])
+def get_hashtag_values():
+    hashtag = request.get_data()
+    print "hashtag:", hashtag
+    result = "Last updated: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    res, new_wc_words = hashtag_word_cloud_sql(hashtag)
     return jsonify(result=result,new_wc_words=new_wc_words)
 
 if __name__ == '__main__':

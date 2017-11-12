@@ -5,7 +5,7 @@ except ImportError:
 
 import wikipedia
 from collections import Counter
-import os
+import os,sys
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
@@ -98,12 +98,16 @@ def populate_wiki_tables (lookup_name, handle, party):
     conn.close()
 
 def populate_wiki_db():
-    populate_wiki_tables("Hillary Clinton", "@HillaryClinton", "Democratic")
-    populate_wiki_tables("Donald Trump", "@realDonaldTrump", "Republican")
-    populate_wiki_tables("Gary Johnson", "@GovGaryJohnson", "Libertarian")
+    populate_wiki_tables("Hillary Clinton", "hillaryclinton", "Democratic")
+    populate_wiki_tables("Donna Brazile", "donnabrazile", "Democratic")
+    populate_wiki_tables("Donald Trump", "realdonaldtrump", "Republican")
+    populate_wiki_tables("Gary Johnson", "govgaryjohnson", "Libertarian")
 
 
 if __name__ == "__main__":
+
+    populate_wiki_db()
+    sys.exit(0)
 
     lookup_names = [["Hillary Clinton", "hillaryclinton", "Democratic"], ["Donald Trump", "realdonaldtrump", "Republican"], ["Gary Johnson", "govgaryjohnson", "Libertarian"]]
 
