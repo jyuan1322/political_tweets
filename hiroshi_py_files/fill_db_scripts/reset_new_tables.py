@@ -26,14 +26,14 @@ def reset_new_tables():
     conn = engine.connect()
 
 
-    conn.execute("DROP TYPE IF EXISTS DONATION_INFO;")
     conn.execute("DROP TABLE IF EXISTS POLITICIAN_DONATIONS;")
+    conn.execute("DROP TYPE IF EXISTS DONATION_INFO;")
     conn.execute("DROP TABLE IF EXISTS POLITICIAN_NEWS;")
 
     conn.execute("CREATE TYPE DONATION_INFO AS\
     (recipient_name VARCHAR(255),\
-    donation_amt DECIMAL(15,2),\
-    donation_date DATE);")
+    donation_date DATE,\
+    donation_amt DECIMAL(15,2));")
 
     conn.execute("CREATE TABLE POLITICIAN_DONATIONS\
     (donate_id INT,\
